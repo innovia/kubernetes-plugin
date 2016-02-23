@@ -56,45 +56,54 @@ public class KubectlBuildWrapper extends SimpleBuildWrapper {
 
     @Override
     public void setUp(Context context, Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener, EnvVars initialEnvironment) throws IOException, InterruptedException {
+    	 System.out.println("BUILD STARTED");
+    	    	// this seems to only run when jenkins num of executers > 0
+    	    	EnvVars envVars = new EnvVars();
+    	    	envVars = build.getEnvironment(listener);
+    	    	System.out.println("JOBNAME: " + envVars.get("JOB_NAME"));
+    	    	
+    	        System.out.println("Setup build: " + build);
 
-        FilePath configFile = workspace.createTempFile(".kube", "config");
-
-        int status = launcher.launch()
-                .cmdAsSingleString("kubectl config --kubeconfig=" + configFile.getRemote() + " set-cluster k8s --server=" + serverUrl + " --insecure-skip-tls-verify=true")
-                .join();
-        if (status != 0) throw new IOException("Failed to run kubectl config "+status);
-
-        final StandardCredentials c = getCredentials();
-
-        String login;
-        if (c instanceof UsernamePasswordCredentials) {
-            UsernamePasswordCredentials upc = (UsernamePasswordCredentials) c;
-            login = "--username=" + upc.getUsername() + " --password=" + Secret.toString(upc.getPassword());
-        } else if (c instanceof BearerTokenCredential) {
-            login = "--token=" + ((BearerTokenCredential) c).getToken();
-        } else {
-            throw new IllegalStateException("Unsupported Credentials type "+c.getClass().getName());
-        }
-
-        status = launcher.launch()
-                .cmdAsSingleString("kubectl config --kubeconfig=" + configFile.getRemote() + " set-credentials cluster-admin " + login)
-                .masks(false, false, false, false, false, false, true)
-                .join();
-        if (status != 0) throw new IOException("Failed to run kubectl config "+status);
-
-        status = launcher.launch()
-                .cmdAsSingleString("kubectl config --kubeconfig=" + configFile.getRemote() + " set-context k8s --cluster=k8s --user=cluster-admin")
-                .join();
-        if (status != 0) throw new IOException("Failed to run kubectl config "+status);
-
-        status = launcher.launch()
-                .cmdAsSingleString("kubectl config --kubeconfig=" + configFile.getRemote() + " use-context k8s")
-                .join();
-        if (status != 0) throw new IOException("Failed to run kubectl config "+status);
-
-        context.setDisposer(new CleanupDisposer(configFile.getRemote()));
-
-        context.env("KUBECONFIG", configFile.getRemote());
+    	        System.out.println("Setup workspace: " + workspace);
+    			
+//        FilePath configFile = workspace.createTempFile(".kube", "config");
+//
+//        int status = launcher.launch()
+//                .cmdAsSingleString("kubectl config --kubeconfig=" + configFile.getRemote() + " set-cluster k8s --server=" + serverUrl + " --insecure-skip-tls-verify=true")
+//                .join();
+//        if (status != 0) throw new IOException("Failed to run kubectl config "+status);
+//
+//        final StandardCredentials c = getCredentials();
+//
+//        String login;
+//        if (c instanceof UsernamePasswordCredentials) {
+//            UsernamePasswordCredentials upc = (UsernamePasswordCredentials) c;
+//            login = "--username=" + upc.getUsername() + " --password=" + Secret.toString(upc.getPassword());
+//        } else if (c instanceof BearerTokenCredential) {
+//            login = "--token=" + ((BearerTokenCredential) c).getToken();
+//        } else {
+//            throw new IllegalStateException("Unsupported Credentials type "+c.getClass().getName());
+//        }
+//
+//        status = launcher.launch()
+//                .cmdAsSingleString("kubectl config --kubeconfig=" + configFile.getRemote() + " set-credentials cluster-admin " + login)
+//                .masks(false, false, false, false, false, false, true)
+//                .join();
+//        if (status != 0) throw new IOException("Failed to run kubectl config "+status);
+//
+//        status = launcher.launch()
+//                .cmdAsSingleString("kubectl config --kubeconfig=" + configFile.getRemote() + " set-context k8s --cluster=k8s --user=cluster-admin")
+//                .join();
+//        if (status != 0) throw new IOException("Failed to run kubectl config "+status);
+//
+//        status = launcher.launch()
+//                .cmdAsSingleString("kubectl config --kubeconfig=" + configFile.getRemote() + " use-context k8s")
+//                .join();
+//        if (status != 0) throw new IOException("Failed to run kubectl config "+status);
+//
+//        context.setDisposer(new CleanupDisposer(configFile.getRemote()));
+//
+//        context.env("KUBECONFIG", configFile.getRemote());
     }
 
     private StandardCredentials getCredentials() {

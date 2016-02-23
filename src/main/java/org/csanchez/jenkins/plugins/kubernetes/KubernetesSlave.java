@@ -88,7 +88,6 @@ public class KubernetesSlave extends AbstractCloudSlave {
 
     @Extension
     public static final class DescriptorImpl extends SlaveDescriptor {
-
         @Override
         public String getDisplayName() {
             return "Kubernetes Slave";
