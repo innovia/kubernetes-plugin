@@ -59,38 +59,6 @@ public class PodTemplate extends AbstractDescribableImpl<PodTemplate> {
         return templateFilePath;
     }
       
-    // Jenkins slave workspace
-    @DataBoundSetter
-    public void setJenkinsSlaveWorkspace(String jenkinsSlaveWorkspace) {
-        this.jenkinsSlaveWorkspace = jenkinsSlaveWorkspace;
-    }   
-    
-    public String getJenkinsSlaveWorkspace() {
-        return jenkinsSlaveWorkspace;
-    }
-    
-    
-    // Build workspace mount path in containers
-    @DataBoundSetter
-    public void setBuildWorkspaceContainersMountPath(String buildWorkspaceContainersMountPath) {
-        this.buildWorkspaceContainersMountPath = buildWorkspaceContainersMountPath;
-    } 
-    
-    public String getBuildWorkspaceContainersMountPath() {
-        return buildWorkspaceContainersMountPath;
-    }
- 
-   
-    // Kuberentes host shared directory for master and Jenkins slave    
-    @DataBoundSetter
-    public void setKubernetesWorkerSlaveWorkspacePath(String kubernetesWorkerSlaveWorkspacePath) {
-        this.kubernetesWorkerSlaveWorkspacePath = kubernetesWorkerSlaveWorkspacePath;
-    }   
-    
-    
-    public String getKubernetesWorkerSlaveWorkspacePath() {
-        return kubernetesWorkerSlaveWorkspacePath;
-    }
     
     @DataBoundSetter
     public void setName(String name) {

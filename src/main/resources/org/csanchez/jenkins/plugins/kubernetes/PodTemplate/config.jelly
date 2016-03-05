@@ -32,18 +32,6 @@ THE SOFTWARE.
   <f:entry field="templateFilePath" title="${%Pod template json file path}">
     <f:textbox/>
   </f:entry>
-  
-  <f:entry field="jenkinsSlaveWorkspace" title="${%Jenkins slave container workspace location}">
-    <f:textbox/>
-  </f:entry>
-
-  <f:entry field="buildWorkspaceContainersMountPath" title="${%Build workspace mount path inside all containers}">
-    <f:textbox/>
-  </f:entry>
-  
-  <f:entry field="kubernetesWorkerSlaveWorkspacePath" title="${%Kubernetes worker Jenkins slave workspace path}">
-    <f:textbox/>
-  </f:entry>
     		
   <f:entry field="name" title="${%Name}">
     <f:textbox/>

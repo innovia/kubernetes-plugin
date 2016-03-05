@@ -9,7 +9,4 @@
     <c:select/>
   </f:entry>
 
-  <f:entry field="podTemplateFilePath" title="${%Kubernetes pod template file path}">
-    <f:textbox/>
-  </f:entry>
 </j:jelly>

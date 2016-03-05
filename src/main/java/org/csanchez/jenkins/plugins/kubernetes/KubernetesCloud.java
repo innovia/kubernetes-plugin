@@ -239,45 +239,13 @@ public class KubernetesCloud extends Cloud {
 	}
 
 	
-	private void mkdir(String dir) {
-		File f = null;
-	    boolean bool = false;
-	    
-	    try{      
-	       // returns pathnames for files and directory
-	       f = new File(dir);
-	       
-	       // create
-	       bool = f.mkdirs();
-	       
-	       // print
-		   System.out.println(dir + " Directory created? => " + bool );
-	    }catch(Exception e){
-	       // if any error occurs
-	       e.printStackTrace();
-	    }
-	}
 	
 	private Pod getPodTemplate(KubernetesSlave slave, Label label) {
 		try {	
 			final PodTemplate template = getTemplate(label);
 			String id = getIdForLabel(label);
 
-			String kubernetesWorkerSlaveWorkspacePath = template.getKubernetesWorkerSlaveWorkspacePath();
-			
-			String jenkins_slave_workspace = template.getJenkinsSlaveWorkspace();
-			
-			String build_folder = UUID.randomUUID().toString();
-			
-			String pod_workspace = jenkins_slave_workspace + "/" + build_folder;
-
-			String build_workspace_mount_path = template.getBuildWorkspaceContainersMountPath();
-			
 			String podTemplateFilePath = template.getTemplateFilePath();
-
-
-			// create the directory for the pod workspace from jenkins master
-			mkdir(pod_workspace);
 			
 			// read pod.json
 			JSONParser parser = new JSONParser();
@@ -335,16 +303,6 @@ public class KubernetesCloud extends Cloud {
 					volumes.add(manifestVolume);
 				}
 								
-				/* add build work-space to the spec-> volumes with the UUID generated for the pod workspace
-					- name: build-workspace
-				      hostPath:
-				          path: "/shared_ebs_volume/jenkins/workspace/slave_workspace/cf5915e6-83d0-4503-9220-fed98b1d0dc6"
-				   */    	  
-					Volume manifestVolume = new Volume();
-					manifestVolume.setName("build-workspace");
-					manifestVolume.setHostPath(new HostPathVolumeSource(kubernetesWorkerSlaveWorkspacePath + "/" + build_folder));
-					volumes.add(manifestVolume);
-					
 					podSpec.setVolumes(volumes);
 			} else {
 				 System.out.println("did not find volumes on the pod template given");
@@ -403,9 +361,6 @@ public class KubernetesCloud extends Cloud {
 				} else {
 					System.out.println("no volume mounts found for container:" + containerName);
 				}
-				
-				System.out.println("adding build-workspace volume to container: " + containerName);
-				volumeMounts.add(new VolumeMount(build_workspace_mount_path, "build-workspace", false));
 				
 				manifestContainer.setVolumeMounts(volumeMounts); // add volumeMounts to container
 			
@@ -482,9 +437,6 @@ public class KubernetesCloud extends Cloud {
 					}
 				
 					// always add some env vars
-					enviroments.add(new EnvVar("JENKINS_SLAVE_WORKSPACE", jenkins_slave_workspace, null));
-					enviroments.add(new EnvVar("POD_WORKSPACE", pod_workspace, null));
-					enviroments.add(new EnvVar("BUILD_FOLDER", build_folder, null));
 					enviroments.add(new EnvVar("JENKINS_SECRET", slave.getComputer().getJnlpMac(), null));
 					enviroments.add(new EnvVar("JENKINS_LOCATION_URL", JenkinsLocationConfiguration.get().getUrl(), null));
 
