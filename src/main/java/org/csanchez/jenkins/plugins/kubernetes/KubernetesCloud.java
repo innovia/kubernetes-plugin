@@ -10,6 +10,7 @@ import java.security.UnrecoverableKeyException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -240,6 +241,7 @@ public class KubernetesCloud extends Cloud {
 
 	
 	
+	
 	private Pod getPodTemplate(KubernetesSlave slave, Label label) {
 		try {	
 			final PodTemplate template = getTemplate(label);
@@ -267,7 +269,19 @@ public class KubernetesCloud extends Cloud {
 
 			pod.getMetadata().setLabels(getLabelsFor(id));
 
-		    // SPEC -> VOLUMES
+		    // SPEC -> nodeSelector
+			if (podTemplateSpecs.has("nodeSelector")) {
+				JSONObject nodeSelector = podTemplateSpecs.getJSONObject("nodeSelector");
+
+				Map nodeSelectorMap = new HashMap<String,String> ();
+				String nodeSelectorKey = (String) nodeSelector.keySet().toArray()[0];
+				nodeSelectorMap.put(nodeSelectorKey, nodeSelector.get(nodeSelectorKey));
+				
+				podSpec.setNodeSelector(nodeSelectorMap);
+				  
+			}
+			
+			// SPEC -> VOLUMES
 			// go over all the volumes under SPEC, add manifestVolume to volumes object list
 			List<Volume> volumes = new ArrayList<Volume>(); // prep new volumes Array
 			if (podTemplateSpecs.has("volumes")) {
@@ -346,6 +360,12 @@ public class KubernetesCloud extends Cloud {
 				manifestContainer.setName(containerName);
 				manifestContainer.setImage(templateContainer.getString("image"));
 
+				// CONTAINER -> WorkingDir
+				if (templateContainer.has("workingDir")) {
+					System.out.println("Adding Working Dir");
+					manifestContainer.setWorkingDir(templateContainer.getString("workingDir"));
+				}
+				
 				// CONTAINER -> VolumesMounts
 				List<VolumeMount> volumeMounts = new ArrayList<VolumeMount>(); // new container volume mounts Array
 

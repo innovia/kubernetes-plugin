@@ -9,7 +9,6 @@
 
 	<groupId>org.csanchez.jenkins.plugins</groupId>
 	<artifactId>kubernetes</artifactId>
-	<version>0.5-SNAPSHOT</version>
 	<name>Kubernetes plugin</name>
 	<description>Jenkins plugin to run dynamic slaves in a Kubernetes/Docker environment</description>
 	<packaging>hpi</packaging>
@@ -202,4 +201,5 @@
 		</pluginRepository>
 	</pluginRepositories>
 
+	<version>0.6-Ami</version>
 </project>
