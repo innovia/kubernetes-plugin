@@ -16,102 +16,57 @@ For that some environment variables are automatically injected:
 * `JENKINS_JNLP_URL`: url for the jnlp definition of the specific slave
 * `JENKINS_SECRET`: the secret key for authentication
 
-Tested with [`csanchez/jenkins-slave`](https://registry.hub.docker.com/u/csanchez/jenkins-slave/),
-see the [Docker image source code](https://github.com/carlossg/jenkins-slave-docker).
+This plugin base on [jenkinsci/kubernetes-plugin](https://github.com/jenkinsci/kubernetes-plugin) and will only work with pod template file at the moment
 
+Use a slave json template making sure the name of the image has slave in it
 
-# Configuration on Google Container Engine
+````json
 
-Create a cluster 
-```
-    gcloud beta container clusters create jenkins --num-nodes 1 --machine-type g1-small
-```
-and note the admin password and server certitifate.
+{
+  "apiVersion": "v1",
+  "kind": "Pod",
+  "metadata": {
+    "name": "slave"
+  },
+  "spec": {
+    "volumes": [
+      {
+        "name": "jenkins-home",
+        "persistentVolumeClaim": {
+          "claimName": "nfs"
+        }
+      },
+      {
+        "name": "slave-workspace",
+        "persistentVolumeClaim": {
+          "claimName": "slave-workspace-nfs-pv"
+        }
+      }
+    ],
+    "containers": [
+      {
+        "name": "jenkins-slave",
+        "image": "12345678910.dkr.ecr.us-east-1.amazonaws.com/glide/jenkins-slave:1.0.0",
+        "securityContext": { "privileged": "true" },
+        "volumeMounts": [
+          {
+            "mountPath": "/jenkins-docker",
+            "name": "jenkins-docker"
+          },
+          {
+            "mountPath": "/var/jenkins_home",
+            "name": "jenkins-home"
+          }
+        ],
+        "ports": [
+          {
+            "containerPort": 8080
+          }
+        ]
+      }
+    ]
+  }
+}
 
-Or use Google Developer Console to create a Container Engine cluster, then run 
-```
-    gcloud beta container get-credentials
-    kubectl config view --raw
-```
-the last command will output kubernetes cluster configuration including API server URL, admin password and root certificate
+````
 
-# Debugging
-
-To inspect the json messages sent back and forth to the Kubernetes API server you can configure
-a new [Jenkins log recorder](https://wiki.jenkins-ci.org/display/JENKINS/Logging) for `org.apache.http`
-at `DEBUG` level.
-
-
-# Building
-
-Run `mvn clean package` and copy `target/kubernetes.hpi` to Jenkins plugins folder.
-
-# Docker image
-
-Docker image for Jenkins, with plugin installed.
-Based on the [official image](https://registry.hub.docker.com/_/jenkins/).
-
-## Running
-
-    docker run --rm --name jenkins -p 8080:8080 -p 50000:50000 -v /var/jenkins_home csanchez/jenkins-kubernetes
-
-## Testing locally
-
-A local testing cluster with one node can be created with Docker Compose
-
-    docker-compose up
-
-When using boot2docker or Docker Engine with a remote host, the remote Kubernetes API can be exposed
-with `docker-machine ssh MACHINE_NAME -- -L 0.0.0.0:8080:localhost:8080` or `boot2docker ssh -L 0.0.0.0:8080:localhost:8080`
-
-More info
-
-* [Docker CookBook examples](https://github.com/how2dock/docbook/tree/master/ch05/docker)
-* [Kubernetes Getting started with Docker](https://github.com/GoogleCloudPlatform/kubernetes/blob/master/docs/getting-started-guides/docker.md)
-
-## Running in Kubernetes (Google Container Engine)
-
-Assuming you created a Kubernetes cluster named `jenkins` this is how to run both Jenkins and slaves there.
-
-Create a GCE disk named `kubernetes-jenkins` to store the data, and format it as ext4.
-Formatting is not needed in new versions of Kubernetes.
-
-Creating the pods and services
-
-    gcloud preview container pods create --config-file ./src/main/kubernetes/pod.yml
-    gcloud preview container services create --config-file ./src/main/kubernetes/service-http.yml
-    gcloud preview container services create --config-file ./src/main/kubernetes/service-slave.yml
-
-Open the firewall to the Jenkins master running in a pod
-
-    gcloud compute firewall-rules create jenkins-node-master --allow=tcp:8888 --target-tags k8s-jenkins-node
-
-Connect to the ip of the network load balancer created by Kubernetes, port 8888. Get the ip with
-
-    gcloud compute forwarding-rules describe jenkins
-
-Configure Jenkins, adding the `Kubernetes` cloud under configuration, setting
-Kubernetes URL to the container engine cluster endpoint, and the correct username and password.
-Set Container Cap to a reasonable number for tests, i.e. 3.
-
-Add an image with
-
-* ID: `csanchez/jenkins-slave`
-* Remote filesystem root: `/home/jenkins`
-* Remote FS Root Mapping: `/home/jenkins`
-
-![image](configuration.png)
-
-Now it is ready to be used.
-
-Tearing it down
-
-    gcloud preview container pods delete jenkins
-    gcloud preview container services delete jenkins
-    gcloud preview container services delete jenkins-slave
-
-
-
-## Building
-
-    docker build -t csanchez/jenkins-kubernetes .
