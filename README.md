@@ -46,7 +46,7 @@ Use a slave json template making sure the name of the image has slave in it
     "containers": [
       {
         "name": "jenkins-slave",
-        "image": "12345678910.dkr.ecr.us-east-1.amazonaws.com/glide/jenkins-slave:1.0.0",
+        "image": "12345678910.dkr.ecr.us-east-1.amazonaws.com/repo/jenkins-slave:1.0.0",
         "securityContext": { "privileged": "true" },
         "volumeMounts": [
           {
